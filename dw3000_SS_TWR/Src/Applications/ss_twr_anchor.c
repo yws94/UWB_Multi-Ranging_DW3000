@@ -7,7 +7,9 @@
 #include <config_options.h>
 
 void Anchor_INIT(void);
-void Multi_Ranging(char tagID, uint8_t dist);
+double* Multi_Ranging(char tagID, uint8_t dist);
+
+extern void test_run_info(unsigned char *data);
 
 static dwt_config_t config = {
         5,               /* Channel number. */
@@ -26,7 +28,7 @@ static dwt_config_t config = {
 };
 
 /* Inter-ranging delay period, in milliseconds. */
-#define RNG_DELAY_MS 500
+#define RNG_DELAY_MS 1000
 
 /* Default antenna delay values for 64 MHz PRF. */
 #define TX_ANT_DLY 16385
@@ -86,11 +88,15 @@ int ss_twr_anchor(void)
     {
     	/* Ranging process for Tag ID : 1 */
     	Multi_Ranging('1',0);
-    	double dist_TAG1 = dist_result[0];
+    	//double dist_TAG1 = dist_result[0];
 
     	/* Ranging process for Tag ID : 2 */
     	Multi_Ranging('2',1);
-    	double dist_TAG2 = dist_result[1];
+    	//double dist_TAG2 = dist_result[1];
+
+    	/* Ranging process for Tag ID : 3 */
+    	Multi_Ranging('3',2);
+    	//double dist_TAG3 = dist_result[2];
 
         /* A delay between ranging exchanges. */
          Sleep(RNG_DELAY_MS);
@@ -132,7 +138,7 @@ void Anchor_INIT(void){
 	/*Configuration end*/
 }
 
-void Multi_Ranging(char tagID, uint8_t dist){
+double* Multi_Ranging(char tagID, uint8_t dist){
 
 	double tof;
 	double distance;
@@ -144,7 +150,7 @@ void Multi_Ranging(char tagID, uint8_t dist){
     dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_TXFRS_BIT_MASK);
     dwt_writetxdata(sizeof(tx_poll_msg), tx_poll_msg, 0);
     dwt_writetxfctrl(sizeof(tx_poll_msg), 0, 1);
-//r
+
     dwt_starttx(DWT_START_TX_IMMEDIATE | DWT_RESPONSE_EXPECTED);
 
     while (!((status_reg = dwt_read32bitreg(SYS_STATUS_ID)) & (SYS_STATUS_RXFCG_BIT_MASK | SYS_STATUS_ALL_RX_TO | SYS_STATUS_ALL_RX_ERR)))
@@ -184,6 +190,10 @@ void Multi_Ranging(char tagID, uint8_t dist){
                 tof = ((rtd_init - rtd_resp * (1 - clockOffsetRatio)) / 2.0) * DWT_TIME_UNITS;
                 distance = tof * SPEED_OF_LIGHT;
                 dist_result[dist] = distance;
+
+                /* USB_Serial communication for printing each TAG's distance result */
+            	snprintf(dist_result,100,"TAG ID : %d, distance : %.3f\n",dist, dist_result[dist]);
+            	test_run_info((unsigned char *) dist_result);
             }
         }
     }
@@ -191,6 +201,8 @@ void Multi_Ranging(char tagID, uint8_t dist){
     {
         dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_ALL_RX_TO | SYS_STATUS_ALL_RX_ERR);
     }
+    return dist_result;
 
-    Sleep(10);
+    /* inter-TAG delay(=Ranging round time) */
+    Sleep(100); //10ms
 }
