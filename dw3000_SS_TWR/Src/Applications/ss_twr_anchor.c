@@ -192,7 +192,7 @@ double* Multi_Ranging(char tagID, uint8_t dist){
                 dist_result[dist] = distance;
 
                 /* USB_Serial communication for printing each TAG's distance result */
-            	snprintf(dist_result,100,"TAG ID : %d, distance : %.3f\n",dist, dist_result[dist]);
+            	snprintf(dist_result,100,"TAG ID : %d, distance : %.3f\n", dist+1, dist_result[dist]);
             	test_run_info((unsigned char *) dist_result);
             }
         }
