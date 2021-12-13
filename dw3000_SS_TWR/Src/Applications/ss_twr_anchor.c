@@ -28,7 +28,7 @@ static dwt_config_t config = {
 };
 
 /* Inter-ranging delay period, in milliseconds. */
-#define RNG_DELAY_MS 1000
+#define RNG_DELAY_MS 500
 
 /* Default antenna delay values for 64 MHz PRF. */
 #define TX_ANT_DLY 16385
@@ -204,5 +204,5 @@ double* Multi_Ranging(char tagID, uint8_t dist){
     return dist_result;
 
     /* inter-TAG delay(=Ranging round time) */
-    Sleep(100); //10ms
+    Sleep(100); //100ms
 }
